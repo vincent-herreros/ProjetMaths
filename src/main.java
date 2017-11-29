@@ -13,6 +13,7 @@ public class main {
 		int nbrEleves;
 		String[] nomEleves=null;
 		//lecture du fichier texte	
+		//test
 		try{
 			FileInputStream ips=new FileInputStream(fichier); 
 			InputStreamReader ipsr=new InputStreamReader(ips);
