@@ -11,6 +11,7 @@ public class main {
 		String fichier ="preferences.csv";
 		String[][] csv = null;
 		int nbrEleves;
+		String[] nomEleves=null;
 		//lecture du fichier texte	
 		try{
 			FileInputStream ips=new FileInputStream(fichier); 
@@ -18,20 +19,22 @@ public class main {
 			BufferedReader br=new BufferedReader(ipsr);
 			String ligne;
 			ligne=br.readLine();
-			nbrEleves = ligne.split(";").length - 1;
+			nbrEleves = ligne.split(",").length - 1;
+			
 			csv = new String [nbrEleves][nbrEleves];
-			String[] nomEleves = new String[nbrEleves];
-			for(int i = 1; i <nbrEleves; i++) {
-				nomEleves[0] = ligne.split(";")[i];
+			nomEleves = new String[nbrEleves];
+			for(int i = 0; i < nbrEleves;i++) {
+				nomEleves[i] = ligne.split(",")[i+1];
 			}
 			int i = 0;
 			while ((ligne=br.readLine())!=null){
 				for(int j = 0; j < nbrEleves;j++) {
-					csv[i][j] = ligne.split(";")[j+1];
+					csv[i][j] = ligne.split(",")[j+1];
 				}
 				i++;
 			}
 			br.close(); 
+			
 		}		
 		catch (Exception e){
 			System.out.println(e.toString());
@@ -40,14 +43,14 @@ public class main {
 		
 		
 		
-		/*for(int i = 0;i <notes.length;i++){
-			for(int j = 0; j <notes[i].length;j++){
-				System.out.print(notes[i][j] + ", ");
+		for(int i = 0;i <csv.length;i++){
+			for(int j = 0; j <csv[i].length;j++){
+				System.out.print(csv[i][j] + ", ");
 			}
 			System.out.println("");
-		}*/
+		}
 		
-		int[][] groupes = repartir(csv);
+		int[][] groupes = repartir(csv, nomEleves);
 		for(int i = 0; i < groupes.length;i++){
 			for(int j = 0; j < groupes[i].length; j++){
 				System.out.print(groupes[i][j] + ", "); 
@@ -58,7 +61,7 @@ public class main {
 	}
 	
 	
-	public static int[][] repartir(String[][] notes){
+	public static int[][] repartir(String[][] notes, String[] nomEleves){
 		
 		int nbrEleves = notes.length;
 		int[][] res = new int[nbrEleves][nbrEleves];
@@ -82,6 +85,9 @@ public class main {
 		
 		int indAD = 0;
 		int[] alreadyDone = new int[nbrEleves];
+		for(int i = 0; i < nbrEleves;i++) {
+			alreadyDone[i] = -1;
+		}
 		
 		String[] notesOrder = {"AR","I","P","AB","B","TB"};
 		
@@ -95,7 +101,7 @@ public class main {
 		//Pour chaque eleves pas deja fait dans la limite du nombre de groupe de 3
 		int elevei = 0;
 		while(indAD < nbrGrp3*3){
-			if(!find(alreadyDone,elevei) || elevei == 0){
+			if(!find(alreadyDone,elevei)){
 				int[] bestNoteDuo = {indexOf(notesOrder,notes[elevei][1]),indexOf(notesOrder,notes[1][elevei])};
 				Arrays.sort(bestNoteDuo);
 				int nbrMA = 1;
@@ -117,11 +123,11 @@ public class main {
 						}
 					}
 				}
-				System.out.println("Eleve sélectionné : "+elevei);
+				System.out.println("Eleve sélectionné : "+nomEleves[elevei]);
 				System.out.println("Binomes sélectionnés : ");
 				int pma=0;
 				while(meilleursAmis[pma]!=0) {
-					System.out.println(meilleursAmis[pma]);
+					System.out.println(nomEleves[meilleursAmis[pma]]);
 					pma++;
 				}
 				sc=new Scanner(System.in);
@@ -145,12 +151,14 @@ public class main {
 								troisiemeAmi = elevek;
 								bestNoteTrio = noteTrio;
 								System.out.println("Sélection du trinôme");
-								System.out.println(deuxiemeAmi);
-								System.out.println(troisiemeAmi);
+								System.out.println(nomEleves[deuxiemeAmi]);
+								System.out.println(nomEleves[troisiemeAmi]);
 								for(int pnt=0;pnt<bestNoteTrio.length;pnt++) {
 									System.out.print(notesOrder[bestNoteTrio[pnt]]+" ,");
 								}
 								System.out.println("");
+								System.out.println("");
+
 							}
 						}
 					}
@@ -161,7 +169,7 @@ public class main {
 				alreadyDone[indAD+2] = troisiemeAmi;
 				indAD += 3;
 				System.out.println("Composition finale du trinôme :");
-				System.out.println(elevei +"  "+deuxiemeAmi+"  "+troisiemeAmi);
+				System.out.println(nomEleves[elevei] +"  "+nomEleves[deuxiemeAmi]+"  "+nomEleves[troisiemeAmi]);
 				System.out.println("Appuyez sur entrée");
 				sc=new Scanner(System.in);
 				entre=sc.nextLine();
@@ -169,10 +177,10 @@ public class main {
 				res[elevei][deuxiemeAmi] = 1;res[deuxiemeAmi][elevei] = 1;
 				res[elevei][troisiemeAmi] = 1;res[troisiemeAmi][elevei] = 1;
 				res[troisiemeAmi][deuxiemeAmi] = 1;res[deuxiemeAmi][troisiemeAmi] = 1;
-				/*for(int i = 0; i<alreadyDone.length;i++){
+				for(int i = 0; i<alreadyDone.length;i++){
 					System.out.print(alreadyDone[i] + ", ");
 				}
-				System.out.println("");*/
+				System.out.println("");
 			}
 			elevei++;
 		}
@@ -200,10 +208,10 @@ public class main {
 				
 				res[elevei][meilleurAmi] = 1;res[meilleurAmi][elevei] = 1;
 				
-				/*for(int i = 0; i<alreadyDone.length;i++){
+				for(int i = 0; i<alreadyDone.length;i++){
 					System.out.print(alreadyDone[i] + ", ");
 				}
-				System.out.println("");*/
+				System.out.println("");
 			}
 			elevei++;
 		}
@@ -217,7 +225,7 @@ public class main {
 		return Arrays.asList(tab).indexOf(element);
 	}
 	public static boolean find(int[] tab, int element){
-		return IntStream.of(tab).anyMatch(x -> x == element);
+		return IntStream.of(tab).anyMatch(x -> x == element) && element == 0;
 	}
 	
 	// renvoie 0 si inferieur, 1 si egal et 2 si superieur
