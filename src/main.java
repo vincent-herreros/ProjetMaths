@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -8,7 +10,13 @@ import java.util.stream.IntStream;
 public class main {
 
 	public static void main(String[] args) throws Exception {
-		String fichier ="preferences.csv";
+		String fichier;
+		try {
+			fichier =args[0];
+		}
+		catch(Exception e) {
+			fichier = "preferences.csv";
+		}
 		String[][] csv = null;
 		int nbrEleves;
 		String[] nomEleves=null;
@@ -41,9 +49,6 @@ public class main {
 			System.out.println(e.toString());
 		}
 		
-		
-		
-		
 		for(int i = 0;i <csv.length;i++){
 			for(int j = 0; j <csv[i].length;j++){
 				System.out.print(csv[i][j] + ", ");
@@ -52,12 +57,28 @@ public class main {
 		}
 		
 		int[][] groupes = repartir(csv, nomEleves);
+		
+		
 		for(int i = 0; i < groupes.length;i++){
 			for(int j = 0; j < groupes[i].length; j++){
 				System.out.print(groupes[i][j] + ", "); 
 			}
 			System.out.println("");
 		}
+		
+		try{
+			File ff=new File("resultat.csv"); // définir l'arborescence
+			ff.createNewFile();
+			FileWriter ffw=new FileWriter(ff);
+			for(int i = 0; i < groupes.length;i++){
+				for(int j = 0; j < groupes[i].length; j++){
+					ffw.write(groupes[i][j] + ";");  // écrire une ligne dans le fichier resultat.txt
+					
+				}
+				ffw.write("\n"); // forcer le passage à la ligne
+			}
+			ffw.close(); // fermer le fichier à la fin des traitements
+		} catch (Exception e) {}
 		
 	}
 	
@@ -67,18 +88,26 @@ public class main {
 		int nbrEleves = notes.length;
 		int[][] res = new int[nbrEleves][nbrEleves];
 		
-		//Calcul des groupes
 		int nbrGrp3 = 0;
-		if(nbrEleves%3 == 1){
-			nbrGrp3 = (nbrEleves/3) - 1;
-		}else if(nbrEleves%3 == 0){
-			nbrGrp3 = nbrEleves/3;
-		}else if(nbrEleves%3 == 2){
-			nbrGrp3 = nbrEleves/3;
+		int nbrGrp2 = 0;
+		int nbrGrp=18;
+		//Calcul des groupes
+		if(nbrEleves<36) {
+			if(nbrEleves%2==1) {
+				nbrGrp2=(nbrEleves/2)-1;
+			}
+			else{
+				nbrGrp2=(nbrEleves/2);
+			}
+			nbrGrp3=(nbrEleves-(nbrGrp2*2))/3;
 		}
+		else if(nbrEleves>=36) {
+			nbrGrp2=54-nbrEleves;
+			nbrGrp3=nbrGrp-nbrGrp2;
+		}
+		
 		System.out.println("Nombre d'élèves au total : "+nbrEleves);
 		System.out.println("Nombre de groupe de 3 : "+nbrGrp3);
-		int nbrGrp2=(nbrEleves-(nbrGrp3*3))/2;
 		System.out.println("Nombre de groupe de 2 : "+nbrGrp2);
 		System.out.println("Appuyez sur entrée");
 		Scanner sc=new Scanner(System.in);
@@ -98,11 +127,27 @@ public class main {
 		sc=new Scanner(System.in);
 		entre=sc.nextLine();
 		
+		String [][] notesTrie = new String[nbrEleves][nbrEleves];
+		String [] nomElevesTrie = new String [nbrEleves];
+		
+		for(int i=0;i<nbrEleves;i++) {
+			int [] notesElevesTrie;
+			if(i==0) {
+				for (int j=0;j<nbrEleves;j++) {
+					notesTrie[i][j] =notes[i][j];
+				}
+			}
+			else {
+				int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
+				Arrays.sort(noteDuo);
+			}
+		}
+	
 		
 		//Pour chaque eleves pas deja fait dans la limite du nombre de groupe de 3
 		int elevei = 0;
 		while(indAD < nbrGrp3*3){
-			if(!find(alreadyDone,elevei)){
+			if(!trouver(alreadyDone,elevei)){
 				int[] bestNoteDuo = {indexOf(notesOrder,notes[elevei][1]),indexOf(notesOrder,notes[1][elevei])};
 				Arrays.sort(bestNoteDuo);
 				int nbrMA = 1;
@@ -110,7 +155,7 @@ public class main {
 				
 				//On trouve ses meillleurs amis
 				for(int elevej = 2; elevej < notes[elevei].length; elevej++){
-					if(elevei != elevej && !find(alreadyDone,elevej)){
+					if(elevei != elevej && !trouver(alreadyDone,elevej)){
 						int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
 						Arrays.sort(noteDuo);
 						if(isBetterThan(noteDuo,bestNoteDuo) == 2){
@@ -141,7 +186,7 @@ public class main {
 				int[] bestNoteTrio = {-1,-1,-1,-1,-1,-1};
 				for(int MAi = 0; MAi <nbrMA; MAi++){
 					for(int elevek = 0; elevek < nbrEleves;elevek++){
-						if(elevei != elevek && meilleursAmis[MAi] != elevek && !find(alreadyDone,elevek)){
+						if(elevei != elevek && meilleursAmis[MAi] != elevek && !trouver(alreadyDone,elevek)){
 							int[] noteTrio = {indexOf(notesOrder,notes[elevei][elevek]),indexOf(notesOrder,notes[elevek][elevei]),
 								indexOf(notesOrder,notes[elevei][meilleursAmis[MAi]]),indexOf(notesOrder,notes[meilleursAmis[MAi]][elevei]),
 								indexOf(notesOrder,notes[elevek][meilleursAmis[MAi]]),indexOf(notesOrder,notes[meilleursAmis[MAi]][elevek])};
@@ -151,7 +196,7 @@ public class main {
 								deuxiemeAmi = meilleursAmis[MAi];
 								troisiemeAmi = elevek;
 								bestNoteTrio = noteTrio;
-								System.out.println("Sélection du trinôme");
+								System.out.println("Groupe de 3 possible :");
 								System.out.println(nomEleves[deuxiemeAmi]);
 								System.out.println(nomEleves[troisiemeAmi]);
 								for(int pnt=0;pnt<bestNoteTrio.length;pnt++) {
@@ -169,9 +214,9 @@ public class main {
 				alreadyDone[indAD+1] = deuxiemeAmi;
 				alreadyDone[indAD+2] = troisiemeAmi;
 				indAD += 3;
-				System.out.println("Composition finale du trinôme :");
-				System.out.println(nomEleves[elevei] +"  "+nomEleves[deuxiemeAmi]+"  "+nomEleves[troisiemeAmi]);
-				System.out.println("Appuyez sur entrée");
+				//System.out.println("Composition finale du trinôme :");
+				//System.out.println(nomEleves[elevei] +"  "+nomEleves[deuxiemeAmi]+"  "+nomEleves[troisiemeAmi]);
+				//System.out.println("Appuyez sur entrée");
 				sc=new Scanner(System.in);
 				entre=sc.nextLine();
 				
@@ -188,16 +233,26 @@ public class main {
 		
 		//On complete avec les groupes de deux
 		while(elevei < nbrEleves){
-			if(!find(alreadyDone,elevei)){
+			if(!trouver(alreadyDone,elevei)){
+				System.out.println("Eleve sélectionné : "+nomEleves[elevei]);
+				System.out.println();
 				int meilleurAmi = -1;
 				int[] bestNote = {-1,-1};
 				for(int elevej = 0; elevej < nbrEleves;elevej++){
-					if(!find(alreadyDone,elevej) && elevei != elevej){
+					if(!trouver(alreadyDone,elevej) && elevei != elevej){
 						int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
 						Arrays.sort(noteDuo);
 						if(isBetterThan(noteDuo,bestNote) == 2){
 							meilleurAmi = elevej;
 							bestNote = noteDuo;
+							System.out.println("Groupe de 2 possible :");
+							System.out.println(nomEleves[elevei]);
+							System.out.println(nomEleves[elevej]);
+							for(int pnt=0;pnt<bestNote.length;pnt++) {
+								System.out.print(notesOrder[bestNote[pnt]]+" ,");
+							}
+							System.out.println();
+							System.out.println();
 						}
 					}
 				}
@@ -212,10 +267,28 @@ public class main {
 				for(int i = 0; i<alreadyDone.length;i++){
 					System.out.print(alreadyDone[i] + ", ");
 				}
-				System.out.println("");
+				System.out.println();
+				System.out.println();
+
 			}
 			elevei++;
 		}
+		
+		int u=0;
+		while (u<alreadyDone.length) {
+			if(nbrGrp3!=0) {
+				System.out.print(nomEleves[alreadyDone[u]]+" , " +nomEleves[alreadyDone[u+1]]+" , "+nomEleves[alreadyDone[u+2]]);
+				System.out.println();
+				u+=3;
+				nbrGrp3--;
+			}
+			else if(nbrGrp3==0) {
+				System.out.print(nomEleves[alreadyDone[u]]+" , " +nomEleves[alreadyDone[u+1]]);
+				System.out.println();
+				u+=2;
+			}
+		}
+		
 		for(int i = 0; i<nbrEleves;i++) {
 			res[i][i] = 1;
 		}
@@ -225,8 +298,17 @@ public class main {
 	public static int indexOf(String[] tab, String element){
 		return Arrays.asList(tab).indexOf(element);
 	}
-	public static boolean find(int[] tab, int element){
-		return IntStream.of(tab).anyMatch(x -> x == element) && element == 0;
+	
+	public static boolean trouver(int[] tab, int element) {
+		int i=0;
+		boolean t=false;
+		while(i<tab.length && t!=true) {
+			if(tab[i]==element) {
+				t=true;
+			}
+			i++;
+		}
+		return t;
 	}
 	
 	// renvoie 0 si inferieur, 1 si egal et 2 si superieur
