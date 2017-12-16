@@ -87,6 +87,10 @@ public class main {
 		
 		int nbrEleves = notes.length;
 		int[][] res = new int[nbrEleves][nbrEleves];
+		String [] nomElevesSauvegarde = new String [nbrEleves];
+		for(int i=0;i<nbrEleves;i++){
+			nomElevesSauvegarde[i]=nomEleves[i];
+		}
 		
 		int nbrGrp3 = 0;
 		int nbrGrp2 = 0;
@@ -127,36 +131,81 @@ public class main {
 		sc=new Scanner(System.in);
 		entre=sc.nextLine();
 		
-		String [][] notesTrie = new String[nbrEleves][nbrEleves];
-		String [] nomElevesTrie = new String [nbrEleves];
+		int [][] notesTrie = new int[nbrEleves][nbrEleves];
 		
 		for(int i=0;i<nbrEleves;i++) {
-			int [] notesElevesTrie;
 			if(i==0) {
 				for (int j=0;j<nbrEleves;j++) {
-					notesTrie[i][j] =notes[i][j];
+					notesTrie[i][j] = indexOf(notesOrder,notes[j][i]);
 				}
+				Arrays.sort(notesTrie[i]);
 			}
 			else {
-				int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
-				Arrays.sort(noteDuo);
+				for (int j=0;j<nbrEleves;j++) {
+					notesTrie[i][j]=indexOf(notesOrder,notes[j][i]);
+				}
+				Arrays.sort(notesTrie[i]);
+				int k=i-1;
+				boolean elevePlace=false;
+				int eleveEnCours=i;
+				String nomEleveEnCours;
+				while(k>=0 && elevePlace==false) {
+					if(isBetterThan(notesTrie[eleveEnCours],notesTrie[k])==0) {
+						int [] echangeNotes = new int [nbrEleves];
+						for(int u=0;u<nbrEleves;u++) {
+							echangeNotes[u] = notesTrie[k][u];
+							notesTrie[k][u]=notesTrie[eleveEnCours][u];
+							notesTrie[eleveEnCours][u]=echangeNotes[u];
+						}
+						nomEleveEnCours=nomEleves[k];
+						nomEleves[k]=nomEleves[eleveEnCours];
+						nomEleves[eleveEnCours]=nomEleveEnCours;
+						eleveEnCours--;
+						k--;
+					}
+					else {
+						elevePlace=true;
+					}
+				}
 			}
+		}
+		for(int i=0;i<nbrEleves;i++) {
+			System.out.print(nomEleves[i]);
+			for(int j=0;j<nbrEleves;j++) {
+				System.out.print(notesTrie[i][j]);
+			}
+			System.out.println();
 		}
 	
 		
 		//Pour chaque eleves pas deja fait dans la limite du nombre de groupe de 3
 		int elevei = 0;
 		while(indAD < nbrGrp3*3){
-			if(!trouver(alreadyDone,elevei)){
-				int[] bestNoteDuo = {indexOf(notesOrder,notes[elevei][1]),indexOf(notesOrder,notes[1][elevei])};
+			int numeroEleve=0;
+			while(numeroEleve<nbrEleves && !nomEleves[elevei].equals(nomElevesSauvegarde[numeroEleve])) {
+				numeroEleve++;
+			}
+			if(!trouver(alreadyDone,numeroEleve)){
+				int[] bestNoteDuo = new int [2];
+				int d;
+				if(numeroEleve!=0) {
+					bestNoteDuo[0] = indexOf(notesOrder,notes[numeroEleve][0]);
+					bestNoteDuo[1] = indexOf(notesOrder,notes[0][numeroEleve]);
+					d=1;
+				}
+				else {
+					bestNoteDuo[0] = indexOf(notesOrder,notes[numeroEleve][1]);
+					bestNoteDuo[1] = indexOf(notesOrder,notes[1][numeroEleve]);
+					d=2;
+					}
 				Arrays.sort(bestNoteDuo);
 				int nbrMA = 1;
 				int[] meilleursAmis = new int[nbrEleves];
 				
 				//On trouve ses meillleurs amis
-				for(int elevej = 2; elevej < notes[elevei].length; elevej++){
-					if(elevei != elevej && !trouver(alreadyDone,elevej)){
-						int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
+				for(int elevej = d; elevej < notes[numeroEleve].length; elevej++){
+					if(numeroEleve != elevej && !trouver(alreadyDone,elevej)){
+						int[] noteDuo = {indexOf(notesOrder,notes[numeroEleve][elevej]),indexOf(notesOrder,notes[elevej][numeroEleve])};
 						Arrays.sort(noteDuo);
 						if(isBetterThan(noteDuo,bestNoteDuo) == 2){
 							bestNoteDuo = noteDuo;
@@ -169,11 +218,11 @@ public class main {
 						}
 					}
 				}
-				System.out.println("Eleve sélectionné : "+nomEleves[elevei]);
+				System.out.println("Eleve sélectionné : "+nomElevesSauvegarde[numeroEleve]);
 				System.out.println("Binomes sélectionnés : ");
 				int pma=0;
 				while(meilleursAmis[pma]!=0) {
-					System.out.println(nomEleves[meilleursAmis[pma]]);
+					System.out.println(nomElevesSauvegarde[meilleursAmis[pma]]);
 					pma++;
 				}
 				sc=new Scanner(System.in);
@@ -186,9 +235,9 @@ public class main {
 				int[] bestNoteTrio = {-1,-1,-1,-1,-1,-1};
 				for(int MAi = 0; MAi <nbrMA; MAi++){
 					for(int elevek = 0; elevek < nbrEleves;elevek++){
-						if(elevei != elevek && meilleursAmis[MAi] != elevek && !trouver(alreadyDone,elevek)){
-							int[] noteTrio = {indexOf(notesOrder,notes[elevei][elevek]),indexOf(notesOrder,notes[elevek][elevei]),
-								indexOf(notesOrder,notes[elevei][meilleursAmis[MAi]]),indexOf(notesOrder,notes[meilleursAmis[MAi]][elevei]),
+						if(numeroEleve != elevek && meilleursAmis[MAi] != elevek && !trouver(alreadyDone,elevek)){
+							int[] noteTrio = {indexOf(notesOrder,notes[numeroEleve][elevek]),indexOf(notesOrder,notes[elevek][numeroEleve]),
+								indexOf(notesOrder,notes[numeroEleve][meilleursAmis[MAi]]),indexOf(notesOrder,notes[meilleursAmis[MAi]][numeroEleve]),
 								indexOf(notesOrder,notes[elevek][meilleursAmis[MAi]]),indexOf(notesOrder,notes[meilleursAmis[MAi]][elevek])};
 							Arrays.sort(noteTrio);
 							
@@ -197,8 +246,8 @@ public class main {
 								troisiemeAmi = elevek;
 								bestNoteTrio = noteTrio;
 								System.out.println("Groupe de 3 possible :");
-								System.out.println(nomEleves[deuxiemeAmi]);
-								System.out.println(nomEleves[troisiemeAmi]);
+								System.out.println(nomElevesSauvegarde[deuxiemeAmi]);
+								System.out.println(nomElevesSauvegarde[troisiemeAmi]);
 								for(int pnt=0;pnt<bestNoteTrio.length;pnt++) {
 									System.out.print(notesOrder[bestNoteTrio[pnt]]+" ,");
 								}
@@ -210,7 +259,7 @@ public class main {
 					}
 				}
 				//Ils ne sont donc plus disponibles
-				alreadyDone[indAD] = elevei;
+				alreadyDone[indAD] = numeroEleve;
 				alreadyDone[indAD+1] = deuxiemeAmi;
 				alreadyDone[indAD+2] = troisiemeAmi;
 				indAD += 3;
@@ -220,8 +269,8 @@ public class main {
 				sc=new Scanner(System.in);
 				entre=sc.nextLine();
 				
-				res[elevei][deuxiemeAmi] = 1;res[deuxiemeAmi][elevei] = 1;
-				res[elevei][troisiemeAmi] = 1;res[troisiemeAmi][elevei] = 1;
+				res[numeroEleve][deuxiemeAmi] = 1;res[deuxiemeAmi][numeroEleve] = 1;
+				res[numeroEleve][troisiemeAmi] = 1;res[troisiemeAmi][numeroEleve] = 1;
 				res[troisiemeAmi][deuxiemeAmi] = 1;res[deuxiemeAmi][troisiemeAmi] = 1;
 				for(int i = 0; i<alreadyDone.length;i++){
 					System.out.print(alreadyDone[i] + ", ");
@@ -233,14 +282,18 @@ public class main {
 		
 		//On complete avec les groupes de deux
 		while(elevei < nbrEleves){
-			if(!trouver(alreadyDone,elevei)){
+			int numeroEleve=0;
+			while(numeroEleve<nbrEleves && !nomEleves[elevei].equals(nomElevesSauvegarde[numeroEleve])) {
+				numeroEleve++;
+			}
+			if(!trouver(alreadyDone,numeroEleve)){
 				System.out.println("Eleve sélectionné : "+nomEleves[elevei]);
 				System.out.println();
 				int meilleurAmi = -1;
 				int[] bestNote = {-1,-1};
 				for(int elevej = 0; elevej < nbrEleves;elevej++){
-					if(!trouver(alreadyDone,elevej) && elevei != elevej){
-						int[] noteDuo = {indexOf(notesOrder,notes[elevei][elevej]),indexOf(notesOrder,notes[elevej][elevei])};
+					if(!trouver(alreadyDone,elevej) && numeroEleve != elevej){
+						int[] noteDuo = {indexOf(notesOrder,notes[numeroEleve][elevej]),indexOf(notesOrder,notes[elevej][numeroEleve])};
 						Arrays.sort(noteDuo);
 						if(isBetterThan(noteDuo,bestNote) == 2){
 							meilleurAmi = elevej;
@@ -258,11 +311,11 @@ public class main {
 				}
 				//Ils ne sont donc plus disponibles
 				//System.out.println(indAD);
-				alreadyDone[indAD] = elevei;
+				alreadyDone[indAD] = numeroEleve;
 				alreadyDone[indAD+1] = meilleurAmi;
 				indAD += 2;
 				
-				res[elevei][meilleurAmi] = 1;res[meilleurAmi][elevei] = 1;
+				res[numeroEleve][meilleurAmi] = 1;res[meilleurAmi][numeroEleve] = 1;
 				
 				for(int i = 0; i<alreadyDone.length;i++){
 					System.out.print(alreadyDone[i] + ", ");
@@ -277,13 +330,13 @@ public class main {
 		int u=0;
 		while (u<alreadyDone.length) {
 			if(nbrGrp3!=0) {
-				System.out.print(nomEleves[alreadyDone[u]]+" , " +nomEleves[alreadyDone[u+1]]+" , "+nomEleves[alreadyDone[u+2]]);
+				System.out.print(nomElevesSauvegarde[alreadyDone[u]]+" , " +nomElevesSauvegarde[alreadyDone[u+1]]+" , "+nomElevesSauvegarde[alreadyDone[u+2]]);
 				System.out.println();
 				u+=3;
 				nbrGrp3--;
 			}
 			else if(nbrGrp3==0) {
-				System.out.print(nomEleves[alreadyDone[u]]+" , " +nomEleves[alreadyDone[u+1]]);
+				System.out.print(nomElevesSauvegarde[alreadyDone[u]]+" , " +nomElevesSauvegarde[alreadyDone[u+1]]);
 				System.out.println();
 				u+=2;
 			}
