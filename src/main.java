@@ -55,30 +55,44 @@ public class main {
 			}
 			System.out.println("");
 		}
-		
+		String[] nomElevesDeb = new String[nomEleves.length];
+		for(int i = 0; i < nomEleves.length; i++){
+			nomElevesDeb[i] = nomEleves[i];
+		}
 		int[][] groupes = repartir(csv, nomEleves);
 		
-		
-		for(int i = 0; i < groupes.length;i++){
+		/*for(int i = 0; i < groupes.length;i++){
 			for(int j = 0; j < groupes[i].length; j++){
 				System.out.print(groupes[i][j] + ", "); 
 			}
 			System.out.println("");
-		}
+		}*/
 		
 		try{
-			File ff=new File("resultat.csv"); // dÃ©finir l'arborescence
+			File ff=new File("resultat.csv"); // définir l'arborescence
 			ff.createNewFile();
 			FileWriter ffw=new FileWriter(ff);
 			for(int i = 0; i < groupes.length;i++){
 				for(int j = 0; j < groupes[i].length; j++){
-					ffw.write(groupes[i][j] + ";");  // Ã©crire une ligne dans le fichier resultat.txt
-					
+					if(i == 0 && j == 0){
+						ffw.write("Noms;");
+					}
+					else if(j == 0){
+						ffw.write(nomElevesDeb[i-1] + ";");
+					}
+					else if(i == 0){
+						ffw.write(nomElevesDeb[j-1] + ";");
+					}
+					else{
+						ffw.write(groupes[i-1][j-1] + ";");  // Ecrire une ligne dans le fichier resultat.txt
+					}
 				}
-				ffw.write("\n"); // forcer le passage Ã  la ligne
+				ffw.write("\n"); // forcer le passage à la ligne
 			}
-			ffw.close(); // fermer le fichier Ã  la fin des traitements
-		} catch (Exception e) {}
+			ffw.close(); // fermer le fichier à la fin des traitements
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 		
 	}
 	
@@ -110,10 +124,10 @@ public class main {
 			nbrGrp3=nbrGrp-nbrGrp2;
 		}
 		
-		System.out.println("Nombre d'Ã©lÃ¨ves au total : "+nbrEleves);
+		System.out.println("Nombre d'élèves au total : "+nbrEleves);
 		System.out.println("Nombre de groupe de 3 : "+nbrGrp3);
 		System.out.println("Nombre de groupe de 2 : "+nbrGrp2);
-		System.out.println("Appuyez sur entrÃ©e");
+		System.out.println("Appuyez sur entrée");
 		Scanner sc=new Scanner(System.in);
 		String entre=sc.nextLine();
 		
@@ -127,7 +141,7 @@ public class main {
 		
 		System.out.println("Ordre lexicographique des notes : ");
 		System.out.println("AR < I < P < AB < B < TB");
-		System.out.println("Appuyez sur entrÃ©e");
+		System.out.println("Appuyez sur entrée");
 		sc=new Scanner(System.in);
 		entre=sc.nextLine();
 		
@@ -218,8 +232,8 @@ public class main {
 						}
 					}
 				}
-				System.out.println("Eleve sÃ©lectionnÃ© : "+nomElevesSauvegarde[numeroEleve]);
-				System.out.println("Binomes sÃ©lectionnÃ©s : ");
+				System.out.println("Eleve sélectionné : "+nomElevesSauvegarde[numeroEleve]);
+				System.out.println("Binomes sélectionnés : ");
 				int pma=0;
 				while(meilleursAmis[pma]!=0) {
 					System.out.println(nomElevesSauvegarde[meilleursAmis[pma]]);
@@ -287,7 +301,7 @@ public class main {
 				numeroEleve++;
 			}
 			if(!trouver(alreadyDone,numeroEleve)){
-				System.out.println("Eleve sÃ©lectionnÃ© : "+nomEleves[elevei]);
+				System.out.println("Eleve sélectionné : "+nomEleves[elevei]);
 				System.out.println();
 				int meilleurAmi = -1;
 				int[] bestNote = {-1,-1};
